@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  emailVerified DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  username     String   @unique
+  displayName  String?
+  bio          String?
+  avatarUrl    String?
+  role         Role     @default(ENTHUSIAST)
+
+  recipes      Recipe[]
+  likes        Like[]
+  comments     Comment[]
+  bookmarks    Bookmark[]
+}
+
+enum Role {
+  ENTHUSIAST
+  CREATOR
+  ADMIN
+}
+
+model Recipe {
+  id          String   @id @default(cuid())
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  title       String
+  description String?
+  media       Json?
+  cuisine     String?
+  mealType    String?
+  difficulty  String?
+  cookTimeMin Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ingredients Ingredient[]
+  steps       Step[]
+  likes       Like[]
+  comments     Comment[]
+}
+
+model Ingredient {
+  id        String  @id @default(cuid())
+  recipeId  String
+  recipe    Recipe  @relation(fields: [recipeId], references: [id])
+  name      String
+  quantity  String?
+}
+
+model Step {
+  id        String  @id @default(cuid())
+  recipeId  String
+  recipe    Recipe  @relation(fields: [recipeId], references: [id])
+  order     Int
+  content   String
+}
+
+model Like {
+  id        String  @id @default(cuid())
+  userId    String
+  recipeId  String
+  user      User    @relation(fields: [userId], references: [id])
+  recipe    Recipe  @relation(fields: [recipeId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, recipeId])
+}
+
+model Comment {
+  id        String  @id @default(cuid())
+  userId    String
+  recipeId  String
+  user      User    @relation(fields: [userId], references: [id])
+  recipe    Recipe  @relation(fields: [recipeId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Bookmark {
+  id        String  @id @default(cuid())
+  userId    String
+  recipeId  String
+  user      User    @relation(fields: [userId], references: [id])
+  recipe    Recipe  @relation(fields: [recipeId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, recipeId])
+}
